@@ -1,7 +1,7 @@
 CROSS_COMPILE	?=
 CC		 = $(CROSS_COMPILE)gcc
 
-CFLAGS		+= -Iinclude -fPIC
+CFLAGS		+= -Iinclude -fPIC -MMD
 BUILD_DIR	 = build
 
 all: $(BUILD_DIR)/libfrozen.so $(BUILD_DIR)/test_frozen
@@ -20,3 +20,5 @@ clean:
 
 $(BUILD_DIR):
 	mkdir -p $@
+
+-include $(BUILD_DIR)/*.d
