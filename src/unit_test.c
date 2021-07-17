@@ -154,96 +154,84 @@ static const char *test_json_printf(void) {
   char buf[200] = "";
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "42 42";
-    json_printf(&out, "%ld %d", 42, 42);
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%ld %d", 42, 42);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   /* platform specific compatibility where it matters */
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "16045690985373621933 42";
-    json_printf(&out, "%" UINT64_FMT " %d", 0xdeadbeeffee1deadUL, 42);
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%" UINT64_FMT " %d", 0xdeadbeeffee1deadUL, 42);
     ASSERT(strcmp(buf, result) == 0);
   }
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "12 42";
     size_t foo = 12;
-    json_printf(&out, "%lu %d", foo, 42);
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%lu %d", foo, 42);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   /* people live in the future today, %llu works even on recent windozes */
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "16045690985373621933 42";
-    json_printf(&out, "%llu %d", 0xdeadbeeffee1deadUL, 42);
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%llu %d", 0xdeadbeeffee1deadUL, 42);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "12 42";
     size_t foo = 12;
-    json_printf(&out, "%zu %d", foo, 42);
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%zu %d", foo, 42);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "{\"foo\": 123, \"x\": [false, true], \"y\": \"hi\"}";
-    json_printf(&out, "{%Q: %d, x: [%B, %B], y: %Q}", "foo", 123, 0, -1, "hi");
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "{%Q: %d, x: [%B, %B], y: %Q}", "foo", 123, 0, -1, "hi");
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     int arr[] = {-2387, 943478};
-    json_printf(&out, "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
                 "%d");
     ASSERT(strcmp(buf, "[-2387, 943478]") == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     double arr[] = {9.32156, 3.1415926};
-    json_printf(&out, "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
                 "%.2lf");
     ASSERT(strcmp(buf, "[9.32, 3.14]") == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     unsigned short arr[] = {65535, 777};
     const char *result = "{\"a\": [-1, 777], \"b\": 37}";
-    json_printf(&out, "{a: %M, b: %d}", json_printf_array, arr, sizeof(arr),
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "{a: %M, b: %d}", json_printf_array, arr, sizeof(arr),
                 sizeof(arr[0]), "%hd", 37);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *arr[] = {"hi", "there", NULL};
     const char *result = "[\"hi\", \"there\", null]";
-    json_printf(&out, "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
                 "%Q");
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "{\"a\": \"\\\"\\\\\\r\\nя\\t\\u0002\"}";
-    json_printf(&out, "{a: %Q}", "\"\\\r\nя\t\x02");
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "{a: %Q}", "\"\\\r\nя\t\x02");
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     struct my_struct mys = {1, 2};
     const char *result = "{\"foo\": {\"a\": 1, \"b\": 2}, \"bar\": 3}";
-    json_printf(&out, "{foo: %M, bar: %d}", print_my_struct, &mys, 3);
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "{foo: %M, bar: %d}", print_my_struct, &mys, 3);
     ASSERT(strcmp(buf, result) == 0);
   }
 
@@ -269,7 +257,6 @@ static const char *test_json_printf(void) {
      * Check long string (which forces frozen to allocate a temporary buffer
      * from heap)
      */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result =
         "{\"foo\": "
         "\"12345678901234567890123456789012345678901234567890123456789012345678"
@@ -277,89 +264,79 @@ static const char *test_json_printf(void) {
     const char *s =
         "\"123456789012345678901234567890123456789012345678901234567890"
         "1234567890123456789012345678901234567890\"";
-    json_printf(&out, "{foo: %s}", s);
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "{foo: %s}", s);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *fmt = "{a: \"%s\"}", *result = "{\"a\": \"b\"}";
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, fmt, "b") > 0);
+    ASSERT(json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), fmt, "b") > 0);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "%.*s %d", 2, "abc", 5) > 0);
+    ASSERT(json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%.*s %d", 2, "abc", 5) > 0);
     ASSERT(strcmp(buf, "ab 5") == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "\"a_b0\": 1";
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "a_b0: %d", 1) > 0);
+    ASSERT(json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "a_b0: %d", 1) > 0);
     ASSERT(strcmp(buf, result) == 0);
   }
 #if JSON_ENABLE_BASE64
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "\"YTI=\"";
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "%V", "a2", 2) > 0);
+    ASSERT(json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%V", "a2", 2) > 0);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "\"ACABIAIgYWJj\"";
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "%V", "\x00 \x01 \x02 abc", 9) > 0);
+    ASSERT(json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%V", "\x00 \x01 \x02 abc", 9) > 0);
     ASSERT(strcmp(buf, result) == 0);
   }
 #endif /* JSON_ENABLE_BASE64 */
 #if JSON_ENABLE_HEX
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "\"002001200220616263\"";
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "%H", 9, "\x00 \x01 \x02 abc") > 0);
+    ASSERT(json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%H", 9, "\x00 \x01 \x02 abc") > 0);
     ASSERT(strcmp(buf, result) == 0);
   }
 #endif /* JSON_ENABLE_HEX */
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "%c", 0x53) > 0);
+    ASSERT(json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%c", 0x53) > 0);
     ASSERT(strcmp(buf, "S") == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *result = "<\"array\">0f";
     memset(buf, 0, sizeof(buf));
-    ASSERT(json_printf(&out, "<array>%02x", 15) > 0);
+    ASSERT(json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "<array>%02x", 15) > 0);
     ASSERT(strcmp(buf, result) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     double arr[] = {9.32156, 3.1415926};
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
     const char *result = "[9.32e+00, 3.14e+00]";  // Modern compilers
 #else
     const char *result = "[9.32e+000, 3.14e+000]";  // Old VC98 compiler
 #endif
-    json_printf(&out, "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
                 "%.2e");
     ASSERT(strcmp(buf, result) == 0);
   }
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     double arr[] = {9.32156, 3.1415926};
-    json_printf(&out, "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
+    json_printf(JSON_OUT_BUFF(buf, sizeof(buf)), "%M", json_printf_array, arr, sizeof(arr), sizeof(arr[0]),
                 "%.4g");
     ASSERT(strcmp(buf, "[9.322, 3.142]") == 0);
   }
@@ -816,114 +793,101 @@ static const char *test_json_setf(void) {
   const char *s1 = "{ \"a\": 123, \"b\": [ 1 ], \"c\": true }";
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "{ \"a\": 7, \"b\": [ 1 ], \"c\": true }";
-    int res = json_setf(s1, strlen(s1), &out, ".a", "%d", 7);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".a", "%d", 7);
     ASSERT(res == 1);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
     /* Add Key with length > 1 */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 =
         "{ \"a\": 123, \"b\": [ 1 ], \"c\": true,\"foo\":{\"bar\":42} }";
-    int res = json_setf(s1, strlen(s1), &out, ".foo.bar", "%d", 42);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".foo.bar", "%d", 42);
     ASSERT(res == 0);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "{ \"a\": 123, \"b\": false, \"c\": true }";
-    int res = json_setf(s1, strlen(s1), &out, ".b", "%B", 0);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".b", "%B", 0);
     ASSERT(res == 1);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "{ \"a\": 123, \"b\": [ 2 ], \"c\": true }";
-    int res = json_setf(s1, strlen(s1), &out, ".b[0]", "%d", 2);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".b[0]", "%d", 2);
     ASSERT(res == 1);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "{ \"b\": [ 1 ], \"c\": true }";
-    int res = json_setf(s1, strlen(s1), &out, ".a", NULL);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".a", NULL);
     ASSERT(res == 1);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "{ \"a\": 123, \"b\": [ 1 ] }";
-    int res = json_setf(s1, strlen(s1), &out, ".c", NULL);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".c", NULL);
     ASSERT(res == 1);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
     /* Delete non-existent key */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s1 = "{\"a\":1}";
-    int res = json_setf(s1, strlen(s1), &out, ".d", NULL);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".d", NULL);
     ASSERT(res == 0);
     ASSERT(strcmp(buf, s1) == 0);
   }
 
   {
     /* Delete non-existent key, spaces in obj */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
-    int res = json_setf(s1, strlen(s1), &out, ".d", NULL);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".d", NULL);
     ASSERT(res == 0);
     ASSERT(strcmp(buf, s1) == 0);
   }
 
   {
     /* Change the whole JSON object */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "123";
-    int res = json_setf(s1, strlen(s1), &out, "", "%d", 123);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), "", "%d", 123);
     ASSERT(res == 1);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
     /* Add missing keys */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 =
         "{ \"a\": 123, \"b\": [ 1 ], \"c\": true,\"d\":{\"e\":8} }";
-    int res = json_setf(s1, strlen(s1), &out, ".d.e", "%d", 8);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".d.e", "%d", 8);
     ASSERT(res == 0);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
     /* Append to arrays */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "{ \"a\": 123, \"b\": [ 1,2 ], \"c\": true }";
-    int res = json_setf(s1, strlen(s1), &out, ".b[]", "%d", 2);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".b[]", "%d", 2);
     ASSERT(res == 0);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
     /* Delete from array */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "{ \"a\": 123, \"b\": [ ], \"c\": true }";
-    int res = json_setf(s1, strlen(s1), &out, ".b[0]", NULL);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".b[0]", NULL);
     ASSERT(res == 1);
     ASSERT(strcmp(buf, s2) == 0);
   }
 
   {
     /* Create array and push value  */
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 = "{ \"a\": 123, \"b\": [ 1 ], \"c\": true,\"d\":[3] }";
-    int res = json_setf(s1, strlen(s1), &out, ".d[]", "%d", 3);
+    int res = json_setf(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf)), ".d[]", "%d", 3);
     // printf("[%s]\n[%s]\n", buf, s2);
     ASSERT(res == 0);
     ASSERT(strcmp(buf, s2) == 0);
@@ -938,11 +902,10 @@ static const char *test_prettify(void) {
 
   {
     const char *s1 = "{ \"a\":   1, \"b\":2,\"c\":[null,\"aa\",{},true]}";
-    struct json_out out = JSON_OUT_BUF(buf, sizeof(buf));
     const char *s2 =
         "{\n  \"a\": 1,\n  \"b\": 2,\n  \"c\": [\n    null,\n    \"aa\",\n    "
         "{},\n    true\n  ]\n}";
-    ASSERT(json_prettify(s1, strlen(s1), &out) > 0);
+    ASSERT(json_prettify(s1, strlen(s1), JSON_OUT_BUFF(buf, sizeof(buf))) > 0);
     ASSERT(strcmp(buf, s2) == 0);
   }
 

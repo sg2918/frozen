@@ -131,12 +131,15 @@ extern int json_printer_file(struct json_out *, const char *, size_t);
       { buf, len, 0 }          \
     }                          \
   }
+#define JSON_OUT_BUFF(buf, len)	(&(struct json_out)JSON_OUT_BUF(buf, len))
+
 #define JSON_OUT_FILE(fp)   \
   {                         \
     json_printer_file, {    \
       { (char *) fp, 0, 0 } \
     }                       \
   }
+#define JSON_OUT_FP(fp)		(&(struct json_out)JSON_OUT_FILE(fp))
 
 typedef int (*json_printf_callback_t)(struct json_out *, va_list *ap);
 
