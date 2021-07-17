@@ -1,41 +1,22 @@
-PROF ?= -fprofile-arcs -ftest-coverage -g
-CFLAGS ?= -std=c99 -g -O0 -W -Wall -Wextra -Werror -fno-builtin -pedantic -lm $(CFLAGS_EXTRA)
-CXXFLAGS ?= -g -O0 -W -Wall -Wextra -Werror -fno-builtin -pedantic -lm $(CFLAGS_EXTRA)
-CLFLAGS ?= /DWIN32_LEAN_AND_MEAN /MD /O2 /TC /W2 /WX
+CROSS_COMPILE	?=
+CC		 = $(CROSS_COMPILE)gcc
 
-RD ?= docker run --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR)
-DOCKER_ROOT ?= docker.io/mgos
-GCC ?= $(RD) $(DOCKER_ROOT)/gcc
+CFLAGS		+= -Iinclude -fPIC
+BUILD_DIR	 = build
 
-.PHONY: all asan c c++ clean vc98 vc2017
+all: $(BUILD_DIR)/libfrozen.so $(BUILD_DIR)/test_frozen
 
-all: ci-test
+$(BUILD_DIR)/%.o: src/%.c | $(BUILD_DIR)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-ci-test: asan c c++ minimal vc98 vc2017
+$(BUILD_DIR)/libfrozen.so: $(BUILD_DIR)/frozen.o | $(BUILD_DIR)
+	$(CC) -shared -o $@ $^
 
-minimal:
-	$(MAKE) asan c c++ CFLAGS_EXTRA=-DJSON_MINIMAL=1
-
-c: clean
-	$(GCC) cc unit_test.c -o unit_test $(CFLAGS) $(PROF) && $(GCC) ./unit_test
-	$(GCC) gcov -a unit_test.c
-
-c++: clean
-	$(GCC) c++ unit_test.c -o unit_test $(CXXFLAGS) $(PROF) && $(GCC) ./unit_test
-	$(GCC) gcov -a unit_test.c
-
-vc98 vc2017:
-	$(RD) $(DOCKER_ROOT)/$@ wine cl unit_test.c $(CLFLAGS) /Fe$@.exe
-	$(RD) $(DOCKER_ROOT)/$@ wine $@.exe
-
-asan:
-	$(RD) -e ASAN_OPTIONS=symbolize=1 $(DOCKER_ROOT)/clang \
-	  clang unit_test.c -o unit_test $(CFLAGS) -fsanitize=address && \
-	$(RD) $(DOCKER_ROOT)/clang ./unit_test
-
-coverity: clean
-	rm -rf cov-int
-	nice cov-build --dir cov-int $(MAKE) c GCC= COVERITY=1
+$(BUILD_DIR)/test_frozen: $(BUILD_DIR)/unit_test.o | $(BUILD_DIR)
+	$(CC) -o $@ $^
 
 clean:
-	rm -rf *.gc* *.dSYM unit_test *.exe *.obj _CL_*
+	rm -rf $(BUILD_DIR)
+
+$(BUILD_DIR):
+	mkdir -p $@
