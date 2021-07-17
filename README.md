@@ -142,12 +142,16 @@ struct json_out {
 };
 ```
 
-Frozen provides two helper macros to initialise two built-in output
+Frozen provides four helper macros to initialise built-in output
 descriptors:
 
 ```c
 struct json_out out1 = JSON_OUT_BUF(buf, len);
+json_out(&out1, ...);
+json_out(JSON_OUT_BUFF(buf, len), ...);
 struct json_out out2 = JSON_OUT_FILE(fp);
+json_out(&out2, ...);
+json_out(JSON_OUT_FP(fp), ...);
 ```
 
 ```c
@@ -432,8 +436,7 @@ json_scanf(content, strlen(content), "{a: %d, b: %Q}", &c.a, &c.b);
 const char *settings_file_name = "settings.json", *tmp_file_name = "tmp.json";
 char *content = json_fread(settings_file_name);
 FILE *fp = fopen(tmp_file_name, "w");
-struct json_out out = JSON_OUT_FILE(fp);
-json_setf(content, strlen(content), &out, ".b", "%Q", "new_string_value");
+json_setf(content, strlen(content), JSON_OUT_FP(fp), ".b", "%Q", "new_string_value");
 fclose(fp);
 json_prettify_file(tmp_file_name);  // Optional
 rename(tmp_file_name, settings_file_name);
